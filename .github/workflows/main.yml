@@ -1,33 +1,56 @@
 name: Full Test and Build Pipeline
+
 on:
-push:
-branches: [ "main" ]
-pull_request:
-branches: [ "main" ]
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
 jobs:
-unit-and-integration-tests:
-runs-on: ubuntu-latest
-steps:
-- uses: actions/checkout@v4
-- uses: actions/setup-node@v4
-with:
-node-version: '20'
-- run: npm install
-- name: Run Jest Tests
-run: npm test
-build:
-needs: [unit-and-integration-tests] # Depends on all tests passing
-runs-on: ubuntu-latest
-steps:
-- uses: actions/checkout@v4
-- uses: actions/setup-node@v4
-with:
-node-version: '20'
-- run: npm install
-- name: Build application
-run: npm run build
-- name: Upload artifact
-uses: actions/upload-artifact@v4
-with:
-name: todo-app-linux
-path: dist/
+  # 1. Chạy Unit Test và Integration Test với Jest
+  unit-and-integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Run Jest Tests
+        run: npm test
+
+  # 2. Chạy End-to-End (E2E) Test với Playwright & Electron
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+
+      # Cài đặt Playwright Browsers và các thư viện hệ thống cho Electron/Xvfb
+      - name: Install Playwright Browsers & Dependencies
+        run: npx playwright install --with-deps
+
+      # Chạy test E2E dưới môi trường ảo XVFB (dành cho Electron GUI)
+      - name: Run Playwright E2E Tests
+        run: xvfb-run --auto-servernum -- npm run test:e2e
+
+  # 3. Build ứng dụng (chỉ chạy khi cả Unit, Integration và E2E Test đều PASS)
+  build:
+    needs: [unit-and-integration-tests, e2e-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Build application
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: todo-app-linux
+          path: dist/
