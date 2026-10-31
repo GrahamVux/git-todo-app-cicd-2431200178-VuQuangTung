@@ -18,6 +18,17 @@ jobs:
       - run: npm ci
       - name: Run Jest Tests
         run: npm test
+      - name: Run Electron E2E Tests
+        run: xvfb-run --auto-servernum npm run test:e2e
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
 
   build:
     needs: [unit-and-integration-tests]

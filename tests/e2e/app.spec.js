@@ -2,7 +2,9 @@ const { test, expect, _electron: electron } = require('@playwright/test');
 
 test('End-to-end user workflow', async () => {
     // Launch the Electron app
-    const electronApp = await electron.launch({ args: ['.'] });
+    const electronApp = await electron.launch({
+        args: ['.', '--no-sandbox'],
+    });
     const window = await electronApp.firstWindow();
 
     const taskText = 'My new E2E test task';

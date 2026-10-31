@@ -1,0 +1,37 @@
+classDiagram
+  class View {
+    - input
+    - addButton
+    - todoList
+    
+    + update(todos) void
+    + bindAddTodo(handler) void
+    + bindToggleTodo(handler) void
+    + bindRemoveTodo(handler) void
+  }
+
+  class Controller {
+    - service: TodoService
+    - view: View
+
+    + initialize() void
+    + handleAddTodo(text) void
+    + handleToggleTodo(id) void
+    + handleRemoveTodo(id) void
+  }
+
+  class TodoService {
+    - todos: []
+    - observers: []
+
+    + constructor()
+    + addTodo(text) void
+    + getTodos() []
+    + removeTodo(id) void
+    + toggleTodoComplete(id) void
+    + notify() void
+    + addObserver(observer) void
+  }
+
+  TodoService <-- Controller
+  View <-- Controller
